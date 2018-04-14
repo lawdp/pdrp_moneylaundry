@@ -1,0 +1,215 @@
+<!doctype html>
+<html>
+	<head>
+		<style>
+			* {
+				border: 0;
+				padding: 0;
+				margin: 0;
+				overflow: hidden;
+				outline: none;
+			}
+			@font-face {
+				font-family: 'PriceDown';
+				src: url('pricedown.ttf');
+			}
+			html, body {
+				width: 100%;
+				height: 100%;
+				border: 0;
+				padding: 0;
+				margin: 0;
+				overflow: hidden;
+				position: absolute;
+				left: 0;
+				top: 0;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				background: transparent;
+				cursor: pointer;
+			}
+
+			main {
+				width: 21%;
+				background: rgba(43, 43, 43, 0.65);
+				color: white;
+				box-sizing: border-box;
+				box-shadow: 1px 1px 15px 1px black;
+				border: 1px solid black;
+				display: none;
+				position: relative;
+				z-index: 1;
+			}
+			main.visible {
+				display: inline-block;
+			}
+			header {
+				font-family: 'PriceDown';
+				font-size: 3vw;
+				text-align: center;
+				background-image: linear-gradient(75deg, rgb(50, 48, 219), rgb(70, 105, 207));
+				height: 15vh;
+				line-height: 13vh;
+			}
+			header .close {
+				position: absolute;
+				right: 4px;
+				top: 4px;
+				background: rgba(255, 255, 255, 0.17);
+				font-size: 2.4vh;
+				height: 3.3vh;
+				line-height: 3.3vh;
+				border-radius: 100%;
+				width: 3.3vh;
+				text-align: center;
+				cursor: pointer;
+				padding: 1px;
+				box-shadow: 0px 0px 1px 1px black;
+			}
+			.launder {
+				display: flex;
+				flex-direction: column;
+			}
+
+			.launder input {
+				text-align:center;
+				color: white;
+				background: transparent;
+				border: 0;
+				margin: 0;
+				padding: 0;
+				border-bottom: 1px solid black;
+				height: 6vh;
+				font-size: 4vh;
+				padding-left: 16px;
+			}
+
+			.launder button {
+				height: 6vh;
+				background: transparent;
+				color: white;
+				font-weight: bold;
+				font-size: 3vh;
+				border: 0;
+				margin: 0;
+				padding: 0;
+				padding-right: 1.4vw;
+				cursor: pointer;
+			}
+			.launder button.hover,
+			.launder button:focus {
+				background: rgba(255, 255, 255, 0.3);
+			}
+
+			.cursor {
+				display: none;
+				position: absolute;
+				width: 17px;
+				height: 24px;
+				background-image: url("./cursor.png");
+				z-index: 1000;
+			}
+
+			.cursor.visible {
+				display: block;
+			}
+		</style>
+	</head>
+	<body>
+		<div class="cursor"></div>
+		<main>
+			<header>
+				<span>Laundromat</span>
+				<span class="close">❌</span>
+			</header>
+			<section class="launder">
+				<input type="number" step="10" min="10" max="10000" value="10000" />
+				<button>💲 Launder</button>
+			</section>
+		</main>
+		<script>
+			let post = (uri, data) => {
+					return new Promise((next, reject) => {
+						let xhr = new XMLHttpRequest();
+						xhr.onreadystatechange = () => {
+							if(4 == this.readyState) {
+								if(200 === this.status) {
+									next(xhr.responseText);
+								} else {
+									reject();
+								}
+							}
+						};
+						xhr.open('POST', uri, true);
+						xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+						xhr.send(JSON.stringify(data || {}));
+					});
+				},
+				close = () => {post('http://pdrp_money_laundry/escape', {});},
+				main = document.querySelector('main'),
+				input = main.querySelector('.launder input'),
+				button = main.querySelector('.launder button'),
+				cursor = document.body.querySelector('.cursor'),
+				hide = main.querySelector('header .close'),
+				element = null;
+			window.addEventListener('message', (event = {}) => {
+				let data = (event || {}).data || {};
+				if(data.hideAll) {
+					main.classList.remove('visible');
+					cursor.classList.remove('visible');
+				} else if(data.showMenu && data.player) {
+					let index = -1,
+						length = (data.player.accounts || []).length,
+						bank_amount = 0;
+					while(++index < length) {
+						if('black_money' === data.player.accounts[index].name) {
+							bank_amount = parseInt(data.player.accounts[index].money, 10);
+							break;
+						}
+					}
+					bank_amount -= bank_amount % 10;
+					if(bank_amount > 10000) {bank_amount = 10000;}
+					input.max = bank_amount;
+					input.value = bank_amount;
+					input.focus();
+					main.classList.add('visible');
+					cursor.classList.add('visible');
+				}
+			}, false);
+
+			document.onkeyup = (event) => {if(27 === event.which) {close();}};
+
+			let x = 0,
+				y = 0,
+				updateCursor = () => {
+					if(cursor.classList.contains('visible')) {
+						cursor.style.top = (y - 4) + 'px';
+						cursor.style.left = '-1000px';
+						element = document.elementFromPoint(x, y);
+						cursor.style.left = (x - 8) + 'px';
+						input.classList[button == element ? 'add' : 'remove']('hover');
+						button.classList[button == element ? 'add' : 'remove']('hover');
+					}
+					setTimeout(updateCursor, 20);
+				};
+
+			document.onmousemove = (event) => {
+				x = event.clientX;
+				y = event.clientY;
+			};
+
+			document.onclick = (event) => {
+				if(input == element) {
+					element.focus();
+				} else if(button == element) {
+					post('http://pdrp_money_laundry/withdraw', {amount: input.value});
+				} else if(hide == element) {
+					close();
+				}
+			};
+
+			updateCursor();
+		</script>
+	</body>
+</html>
