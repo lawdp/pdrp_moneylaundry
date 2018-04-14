@@ -1,4 +1,4 @@
-<!doctype html>
+0000000<!doctype html>
 <html>
 	<head>
 		<style>
@@ -146,7 +146,7 @@
 						xhr.send(JSON.stringify(data || {}));
 					});
 				},
-				close = () => {post('http://pdrp_money_laundry/escape', {});},
+				close = () => {post('http://pdrp_moneylaundry/escape', {});},
 				main = document.querySelector('main'),
 				input = main.querySelector('.launder input'),
 				button = main.querySelector('.launder button'),
@@ -203,7 +203,7 @@
 				if(input == element) {
 					element.focus();
 				} else if(button == element) {
-					post('http://pdrp_money_laundry/withdraw', {amount: input.value});
+					post('http://pdrp_moneylaundry/withdraw', {amount: input.value});
 				} else if(hide == element) {
 					close();
 				}
